@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>華佳のカルテ</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg2: #1a1a1a;
+    --bg3: #242424;
+    --border: rgba(255,255,255,0.08);
+    --text: #f0f0f0;
+    --muted: #888;
+    --ok: #4ade80;
+    --ok-bg: rgba(74,222,128,0.1);
+    --care: #fbbf24;
+    --care-bg: rgba(251,191,36,0.1);
+    --ng: #f87171;
+    --ng-bg: rgba(248,113,113,0.1);
+    --accent: #a78bfa;
+    --accent-bg: rgba(167,139,250,0.12);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
+  .sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,15,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 16px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .sticky-nav::-webkit-scrollbar { display: none; }
+  .nav-btn {
+    flex-shrink: 0;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+    white-space: nowrap;
+  }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .section { display: none; padding: 16px; }
+  .section.active { display: block; }
+
+  .hero {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .avatar {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    border: 1.5px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 600; color: var(--accent);
+    flex-shrink: 0;
+  }
+  .hero-name { font-size: 17px; font-weight: 600; }
+  .hero-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  .sec-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--muted); letter-spacing: .6px;
+    margin: 20px 0 8px;
+  }
+  .sec-label:first-child { margin-top: 0; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .met {
+    background: var(--bg2);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .met-l { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .met-v { font-size: 20px; font-weight: 600; color: var(--text); }
+  .met-u { font-size: 11px; font-weight: 400; }
+  .met-s { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .card {
+    background: var(--bg2);
+    border-radius: var(--radius);
+    padding: 4px 16px;
+    margin-bottom: 10px;
+    border: 0.5px solid var(--border);
+  }
+  .row {
+    padding: 12px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .row:last-child { border-bottom: none; }
+
+  .row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .row-name { font-size: 14px; font-weight: 500; }
+  .row-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .badge {
+    font-size: 10px; padding: 3px 9px;
+    border-radius: 99px; white-space: nowrap; flex-shrink: 0;
+    font-weight: 500;
+  }
+  .b-ok { background: var(--ok-bg); color: var(--ok); }
+  .b-care { background: var(--care-bg); color: var(--care); }
+  .b-ng { background: var(--ng-bg); color: var(--ng); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .rule-box { border-radius: var(--radius-sm); padding: 12px; }
+  .rule-ok { background: var(--ok-bg); border: 0.5px solid rgba(74,222,128,0.2); }
+  .rule-ng { background: var(--ng-bg); border: 0.5px solid rgba(248,113,113,0.2); }
+  .rule-t { font-size: 11px; font-weight: 600; margin-bottom: 6px; }
+  .rule-ok .rule-t { color: var(--ok); }
+  .rule-ng .rule-t { color: var(--ng); }
+  .rule-item { font-size: 11px; line-height: 1.9; }
+  .rule-ok .rule-item { color: #86efac; }
+  .rule-ng .rule-item { color: #fca5a5; }
+
+  .food-row {
+    display: flex; align-items: flex-start;
+    gap: 10px; padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 13px;
+  }
+  .food-row:last-child { border-bottom: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+  .d-ok { background: var(--ok); }
+  .d-care { background: var(--care); }
+  .d-ng { background: none; width: auto; height: auto; border-radius: 0; margin-top: 0; font-size: 14px; line-height: 1.4; }
+  .food-name { color: var(--text); }
+  .food-note { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .sub-h {
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    padding: 12px 0 4px;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 0;
+  }
+  .divider { height: 0.5px; background: var(--border); margin: 8px 0; }
+
+  .ex-row { padding: 12px 0; border-bottom: 0.5px solid var(--border); }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .ex-name { font-size: 14px; font-weight: 500; }
+  .ex-set { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .ex-tip {
+    font-size: 12px; color: #aaa;
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    line-height: 1.6;
+  }
+
+  .week-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 4px; margin-bottom: 12px;
+  }
+  .dc { border-radius: 8px; padding: 8px 2px; text-align: center; }
+  .dc-l { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .dc-t { font-size: 10px; font-weight: 600; }
+  .dc-lower { background: var(--ok-bg); }.dc-lower .dc-t { color: var(--ok); }
+  .dc-upper { background: rgba(96,165,250,0.12); }.dc-upper .dc-t { color: #60a5fa; }
+  .dc-rest { background: var(--bg2); }.dc-rest .dc-t { color: var(--muted); }
+  .dc-cardio { background: var(--care-bg); }.dc-cardio .dc-t { color: var(--care); }
+
+  .action-row {
+    display: flex; gap: 12px;
+    padding: 12px 0; border-bottom: 0.5px solid var(--border);
+    align-items: flex-start;
+  }
+  .action-row:last-child { border-bottom: none; }
+  .num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-bg); border: 1px solid var(--accent);
+    color: var(--accent); font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .action-t { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .action-d { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .legend {
+    display: flex; gap: 14px; margin-bottom: 10px;
+    font-size: 11px; color: var(--muted);
+  }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .ldot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+</style>
+</head>
+<body>
+
+<nav class="sticky-nav">
+  <button class="nav-btn active" onclick="show('gene',this)">遺伝子</button>
+  <button class="nav-btn" onclick="show('food',this)">食材</button>
+  <button class="nav-btn" onclick="show('recipe',this)">料理</button>
+  <button class="nav-btn" onclick="show('snack',this)">おやつ</button>
+  <button class="nav-btn" onclick="show('drink',this)">お酒</button>
+  <button class="nav-btn" onclick="show('workout',this)">筋トレ</button>
+  <button class="nav-btn" onclick="show('action',this)">やること</button>
+</nav>
+
+<!-- 遺伝子 -->
+<div id="sec-gene" class="section active">
+  <div class="sec-label">遺伝子タイプ：カバ（下半身ぷよぷよ・筋肉不足）</div>
+  <div class="card">
+    <div class="row"><div class="row-head"><span class="row-name">β3AR 糖代謝リスク</span><span class="badge b-ok">標準</span></div><div class="row-desc">糖質で太りにくい。糖質制限ダイエットは効果が薄く逆効果になりえる。炭水化物OFFは不要。</div></div>
+    <div class="row"><div class="row-head"><span class="row-name">β2AR たんぱく質リスク</span><span class="badge b-care">やや高い</span></div><div class="row-desc">筋肉がつきにくく基礎代謝が上がりにくい。加齢で急に太るリスクあり。一度太ると痩せにくい体質。</div></div>
+    <div class="row"><div class="row-head"><span class="row-name">UCP1 脂質代謝リスク</span><span class="badge b-care">やや高い</span></div><div class="row-desc">揚げ物・クリームで太りやすい。下半身の皮下脂肪がつきやすく冷えやすい。むくみにも注意。</div></div>
+  </div>
+
+  <div class="sec-label">体質のルール</div>
+  <div class="two-col">
+    <div class="rule-box rule-ok">
+      <div class="rule-t">やってOK</div>
+      <div class="rule-item">ご飯・麺を普通に食べる</div>
+      <div class="rule-item">たんぱく質をしっかり摂る</div>
+      <div class="rule-item">筋トレを週2〜3回継続</div>
+      <div class="rule-item">フルーツ（常温で）</div>
+      <div class="rule-item">体を温める食生活</div>
+    </div>
+    <div class="rule-box rule-ng">
+      <div class="rule-t">やってはNG</div>
+      <div class="rule-item">糖質制限ダイエット</div>
+      <div class="rule-item">食事量を極端に減らす</div>
+      <div class="rule-item">たんぱく質を削る</div>
+      <div class="rule-item">揚げ物・クリームを多く</div>
+      <div class="rule-item">冷たいものを多く摂る</div>
+    </div>
+  </div>
+</div>
+
+<!-- 食材 -->
+<div id="sec-food" class="section">
+  <div class="legend">
+    <span><span class="ldot d-ok"></span>OK</span>
+    <span><span class="ldot d-care"></span>少量なら</span>
+    <span><span style="font-size:13px;line-height:1;">❌</span>避ける</span>
+  </div>
+  <div class="card">
+    <div class="sub-h">魚介類</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">白身魚全般（タラ・カレイ・タイ・ヒラメ）</div><div class="food-note">低脂質で最優秀</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">まぐろ赤身・かつお・鮭・しらす</div><div class="food-note">高たんぱく・低脂質</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">えび・ホタテ・イカ・タコ</div><div class="food-note">低脂質のたんぱく源</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">鯖・サーモン・中トロ</div><div class="food-note">良質な脂だが量が多い。週1〜2回まで</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">うなぎ・銀だら・大トロ・いくら</div><div class="food-note">脂質がかなり高い</div></div></div>
+    <div class="sub-h">肉類</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">鶏むね肉・ささみ</div><div class="food-note">高たんぱく・超低脂質の最強食材</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">鶏もも肉（皮なし）</div><div class="food-note">皮を取れば脂質が大幅ダウン</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">豚ヒレ・豚もも・牛赤身・ハラミ</div><div class="food-note">赤身・ヒレ部位を選べばOK</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">鶏もも（皮つき）・豚バラ・牛カルビ・霜降り</div><div class="food-note">脂身が多い部位は避ける</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">ソーセージ・ベーコン・ハム</div><div class="food-note">加工肉は脂質＋塩分が高い</div></div></div>
+    <div class="sub-h">野菜・海藻・きのこ</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">きのこ類全般・海藻類（わかめ・もずく）</div><div class="food-note">低カロリー・脂質吸収を抑える</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">ほうれん草・小松菜・ブロッコリー</div><div class="food-note">代謝サポート・鉄分補給</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">かぼちゃ・さつまいも・ごぼう・玉ねぎ</div><div class="food-note">体を温める根菜◎</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">アボカド</div><div class="food-note">良質な脂だが量が多い。少量ならOK</div></div></div>
+    <div class="sub-h">卵・乳製品・大豆</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">豆腐・納豆・豆乳（無調整）</div><div class="food-note">低脂質・高たんぱくの三種の神器</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">卵（ゆで・蒸し）・無糖ヨーグルト</div><div class="food-note">間食にも最適</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">油揚げ・厚揚げ</div><div class="food-note">少量ならOK</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">生クリーム・バター・チーズ</div><div class="food-note">遺伝子的に最も蓄積しやすい食材</div></div></div>
+    <div class="sub-h">主食・調味料</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">ご飯・パン・うどん・そば・パスタ</div><div class="food-note">糖質リスクは低いので普通に食べてOK</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">ポン酢・醤油・塩・だし・酢</div><div class="food-note">脂質ゼロの調味料を積極活用</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">オリーブオイル</div><div class="food-note">良質な油だが使いすぎ注意</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">マヨネーズ・バター・ラード</div><div class="food-note">脂質が非常に高い調味料</div></div></div>
+  </div>
+</div>
+
+<!-- 料理 -->
+<div id="sec-recipe" class="section">
+  <div class="legend">
+    <span><span class="ldot d-ok"></span>OK</span>
+    <span><span class="ldot d-care"></span>少量なら</span>
+    <span><span style="font-size:13px;line-height:1;">❌</span>避ける</span>
+  </div>
+  <div class="card">
+    <div class="sub-h">麺・パスタ</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">和風パスタ・トマトソースパスタ</div><div class="food-note">だし・トマト系は低脂質</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">しょうゆ・塩ラーメン・ざるそば・かけうどん</div><div class="food-note">スープは半分残すとなお◎</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">天ぷらそば（天ぷら抜きで）・豚骨ラーメン</div><div class="food-note">スープ残しで対処</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">クリームパスタ・カルボナーラ</div><div class="food-note">生クリーム＋チーズで脂質が非常に高い</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">チャーハン・焼きそば</div><div class="food-note">炒め油で脂質が跳ね上がる</div></div></div>
+    <div class="sub-h">中華</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">蒸し鶏・蒸し餃子・水餃子・マーボー豆腐</div><div class="food-note">蒸し・あんかけ調理はOK</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">回鍋肉・青椒肉絲・春巻き</div><div class="food-note">炒め油多め。少量なら</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">唐揚げ・酢豚・チャーハン・北京ダック</div><div class="food-note">揚げ・炒め調理で脂質が急増</div></div></div>
+    <div class="sub-h">洋食・ファミレス</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">グリルチキン（塩・レモン）</div><div class="food-note">皮なし鶏むねをシンプルに焼くのが最強</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">ハンバーグ（おろしポン酢・トマトソース）</div><div class="food-note">ソース選びで脂質が大きく変わる</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">ミネストローネ・コンソメスープ</div><div class="food-note">体も温まる◎</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">クリームシチュー・グラタン・ドリア</div><div class="food-note">クリーム＋チーズで脂質の塊</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">チキン南蛮・チーズのせハンバーグ</div><div class="food-note">衣・タルタル・チーズで脂質が倍以上</div></div></div>
+    <div class="sub-h">焼肉・定食</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">しゃぶしゃぶ（ポン酢）・水炊き</div><div class="food-note">茹でることで脂が落ちる。最強調理法</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">焼き魚定食・刺し身定食</div><div class="food-note">ご飯もしっかり食べてOK</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">焼肉（タン塩・鶏・赤身）</div><div class="food-note">タレより塩で食べる</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">焼肉（カルビ・ロース）・唐揚げ定食・天ぷら定食</div><div class="food-note">脂身・揚げ油で脂質過多に</div></div></div>
+    <div class="sub-h">スイーツ</div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">わらびもち・ところてん・シャーベット・かき氷</div><div class="food-note">和菓子・氷系は脂質ほぼゼロ</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">どら焼き・大福・羊羹</div><div class="food-note">脂質は低いが糖質多め。1個まで</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">ケーキ・アイスクリーム・チョコ・クッキー</div><div class="food-note">乳脂肪＋バターで脂質が高い</div></div></div>
+  </div>
+
+  <div class="sec-label">朝の自炊おすすめ</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">納豆ご飯＋卵（ゆで or 温泉卵）＋お味噌汁</div><div class="food-note">低脂質・高たんぱくで最強の朝食。準備5分</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">卵雑炊（ご飯＋卵＋だし）＋きのこソテー</div><div class="food-note">温かく消化にいい。胃腸に負担が少ない</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">トースト1枚＋スクランブルエッグ（卵2個）＋野菜スープ</div><div class="food-note">バターは薄く。スープで体を温める</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">バナナ（常温）＋豆乳 or プロテイン</div><div class="food-note">忙しい朝でも手軽にたんぱく質を確保</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">ヨーグルト＋りんご（常温）</div><div class="food-note">たんぱく質が少なめなので卵や豆乳と組み合わせて</div></div></div>
+  </div>
+
+  <div class="sec-label">昼の外食おすすめ</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">焼き魚定食・刺し身定食・鶏の照り焼き定食</div><div class="food-note">定食ならご飯もしっかり食べてOK。揚げ物定食はNG</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">そば（もりそば・かけそば）＋ゆで卵</div><div class="food-note">天ぷらそばは天ぷら抜きで注文すると◎</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">コンビニ：おにぎり2個＋サラダチキン＋お吸い物</div><div class="food-note">脂質が低くたんぱく質が摂れる最強コンボ</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">牛丼（並・つゆだく）＋豆腐かサラダ</div><div class="food-note">脂身少なめでオーダーできれば◎</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">しょうゆ・塩ラーメン＋ゆで卵トッピング</div><div class="food-note">スープは半分残す。チャーシューを多めに</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">ハンバーガー（照り焼きチキン・フィレオ）</div><div class="food-note">チキン系を選ぶ。ポテトはできるだけ控える</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">揚げ物定食・カレー（ルー多め）・ラーメン＋チャーハンセット</div><div class="food-note">脂質過多になりやすい組み合わせ</div></div></div>
+  </div>
+
+  <div class="sec-label">夜の自炊おすすめ</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">鶏むね肉の蒸し鶏＋根菜の味噌汁＋ご飯</div><div class="food-note">蒸すだけで高たんぱく・低脂質の最強おかず。作り置きも可</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">鮭の塩焼き＋ひじきの煮物＋ご飯＋わかめスープ</div><div class="food-note">作り置きしやすいメニュー。週末にまとめて仕込める</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">豚しゃぶ（もも肉）＋ポン酢＋野菜たっぷり＋ご飯</div><div class="food-note">豚もも肉は脂身が少ない。タレはポン酢で脂質ゼロ</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">豆腐と卵のあんかけ丼＋わかめスープ</div><div class="food-note">準備10分・低脂質・高たんぱく。コスパ最強</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">親子丼（鶏むね肉）＋もずく酢</div><div class="food-note">むね肉を使えば脂質が低くなる</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">チャーハン（油少なめ・卵多め）</div><div class="food-note">油を少量にすれば週1程度ならOK</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">揚げ物（唐揚げ・とんかつ・天ぷら）</div><div class="food-note">素揚げ・から揚げでも油の脂質が多い。週2回以内に</div></div></div>
+  </div>
+</div>
+
+<!-- お酒 -->
+<div id="sec-drink" class="section">
+
+  <div class="sec-label">蒸留酒とは？</div>
+  <div class="card" style="padding:14px 16px;">
+    <p style="font-size:13px;color:#ccc;line-height:1.7;">醸造酒（ビール・ワインなど）をさらに加熱・蒸発させて作るお酒。蒸留の工程で糖質がほぼゼロになるため、太りにくいお酒の代表格。焼酎・ウイスキー・ジン・ウォッカなどが該当する。</p>
+    <div style="margin-top:12px;padding:10px 12px;background:var(--bg3);border-radius:var(--radius-sm);font-size:12px;color:#fbbf24;line-height:1.6;">
+      ⚠️ お酒自体に脂質はゼロ。ただしアルコールが脂質の代謝を邪魔するため、飲んでいる間は脂肪が燃えにくくなる。「何を飲むか」より<strong style="color:#f0f0f0;">「飲みながら何を食べるか」</strong>が最重要。
+    </div>
+  </div>
+
+  <div class="sec-label">コップ1杯（約200ml）の糖質・カロリー比較　少ない順</div>
+  <div class="card" style="padding:4px 0;">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead>
+        <tr style="border-bottom:0.5px solid var(--border);">
+          <th style="padding:10px 14px;text-align:left;color:var(--muted);font-weight:500;">お酒</th>
+          <th style="padding:10px 8px;text-align:right;color:var(--muted);font-weight:500;white-space:nowrap;">糖質</th>
+          <th style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);font-weight:500;white-space:nowrap;">kcal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(74,222,128,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ok);font-weight:500;">焼酎水割り（25度）</span><br><span style="font-size:10px;color:var(--muted);">蒸留酒。お湯割りは体も温まる◎</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:600;white-space:nowrap;">0g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約70</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(74,222,128,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ok);font-weight:500;">ハイボール</span><br><span style="font-size:10px;color:var(--muted);">蒸留酒。炭酸水割りで低カロリー</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:600;white-space:nowrap;">0g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約80</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(74,222,128,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ok);font-weight:500;">烏龍ハイ・緑茶ハイ</span><br><span style="font-size:10px;color:var(--muted);">脂質吸収を抑える効果も期待できる</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:600;white-space:nowrap;">0〜1g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約80</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(74,222,128,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ok);font-weight:500;">無糖レモンサワー</span><br><span style="font-size:10px;color:var(--muted);">「無糖」「ドライ」表記を確認して</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:600;white-space:nowrap;">0〜2g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約90</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(74,222,128,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ok);font-weight:500;">辛口白ワイン・赤ワイン</span><br><span style="font-size:10px;color:var(--muted);">赤はポリフェノール◎　1〜2杯まで</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ok);font-weight:600;white-space:nowrap;">約2g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約90</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(251,191,36,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--care);font-weight:500;">発泡酒</span><br><span style="font-size:10px;color:var(--muted);">ビールより糖質は少なめ</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--care);font-weight:600;white-space:nowrap;">約6g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約95</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(251,191,36,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--care);font-weight:500;">ビール</span><br><span style="font-size:10px;color:var(--muted);">1杯目だけにする</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--care);font-weight:600;white-space:nowrap;">約8g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約100</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(248,113,113,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ng);font-weight:500;">日本酒（1合）</span><br><span style="font-size:10px;color:var(--muted);">量が多いほど糖質が増える</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ng);font-weight:600;white-space:nowrap;">約8g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約190</td>
+        </tr>
+        <tr style="border-bottom:0.5px solid var(--border);background:rgba(248,113,113,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ng);font-weight:500;">甘いサワー・缶チューハイ</span><br><span style="font-size:10px;color:var(--muted);">種類によって糖質が大きく変わる</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ng);font-weight:600;white-space:nowrap;">10〜15g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約130</td>
+        </tr>
+        <tr style="background:rgba(248,113,113,0.05);">
+          <td style="padding:10px 14px;"><span style="color:var(--ng);font-weight:500;">梅酒（ロック）</span><br><span style="font-size:10px;color:var(--muted);">砂糖が多く糖質が非常に高い</span></td>
+          <td style="padding:10px 8px;text-align:right;color:var(--ng);font-weight:600;white-space:nowrap;">約20g</td>
+          <td style="padding:10px 14px 10px 4px;text-align:right;color:var(--muted);white-space:nowrap;">約160</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend" style="margin-top:4px;">
+    <span><span class="ldot d-ok"></span>OK</span>
+    <span><span class="ldot d-care"></span>少量なら</span>
+    <span><span style="font-size:13px;line-height:1;">❌</span>避ける</span>
+  </div>
+
+  <div class="sec-label">居酒屋メニュー</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">枝豆・冷奴・刺し身・だし巻き卵・もずく酢</div><div class="food-note">最初に頼んで脂質吸収を抑える</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">焼き鳥（塩）・お茶漬け・雑炊（〆）</div><div class="food-note">塩を選ぶだけで大きく違う。〆はこちら</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">唐揚げ・フライドポテト・焼き餃子</div><div class="food-note">2〜3個までにとどめる</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">マヨ系・チーズ料理・〆ラーメン</div><div class="food-note">脂質＋糖質のダブルパンチ</div></div></div>
+    <div class="sub-h">飲み会3つのコツ</div>
+    <div class="action-row"><div class="num">1</div><div><div class="action-d">最初は烏龍ハイか焼酎。ビールは1杯目だけ。</div></div></div>
+    <div class="action-row"><div class="num">2</div><div><div class="action-d">枝豆・刺し身から食べ始めて揚げ物を後回し。</div></div></div>
+    <div class="action-row"><div class="num">3</div><div><div class="action-d">〆はお茶漬け or 雑炊。どうしてもならラーメン半分。</div></div></div>
+  </div>
+</div>
+
+<!-- おやつ -->
+<div id="sec-snack" class="section">
+  <div class="card" style="padding:14px 16px;margin-bottom:12px;">
+    <p style="font-size:13px;color:#ccc;line-height:1.7;">β2AR体質はたんぱく質が不足しやすいため、おやつは「食べない」より「たんぱく質を補う間食を意識的に食べる」のが正解。空腹でなくても1日1回は食べる。</p>
+  </div>
+
+  <div class="legend">
+    <span><span class="ldot d-ok"></span>積極的にOK</span>
+    <span><span class="ldot d-care"></span>少量なら</span>
+    <span><span style="font-size:13px;line-height:1;">❌</span>避ける</span>
+  </div>
+
+  <div class="sec-label">たんぱく質系おやつ（最優先）</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">無糖ヨーグルト（100〜150g）</div><div class="food-note">低脂質でたんぱく質◎。はちみつ少量で甘みを足してもOK</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">プロテイン（ソイ or ホエイ）</div><div class="food-note">胃腸が弱めならソイプロテインかアミノ酸サプリが◎</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">ゆで卵（1〜2個）</div><div class="food-note">手軽で高たんぱく。コンビニでも買える</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">サラダチキン（コンビニ）</div><div class="food-note">超低脂質・高たんぱく。小腹が空いたときに最適</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">豆乳（無調整）・低脂肪乳</div><div class="food-note">飲むだけでたんぱく質補給。温めると体も温まる</div></div></div>
+  </div>
+
+  <div class="sec-label">フルーツ系おやつ</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">りんご（常温）</div><div class="food-note">食物繊維で脂質吸収を抑える。冷やさずに食べる◎</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">バナナ（常温）</div><div class="food-note">エネルギー補給にも◎。筋トレ後にも最適</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">いちご・みかん・キウイ</div><div class="food-note">ビタミンC豊富。常温で食べること</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">ぶどう・マンゴー・さくらんぼ</div><div class="food-note">糖質が高め。少量なら◎</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">冷蔵庫から出したての冷たいフルーツ</div><div class="food-note">冷えやすい体質なので必ず常温に戻してから食べる</div></div></div>
+  </div>
+
+  <div class="sec-label">和菓子・その他</div>
+  <div class="card">
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">わらびもち・ところてん・寒天ゼリー</div><div class="food-note">脂質ほぼゼロ。甘いものが食べたいときの最強選択肢</div></div></div>
+    <div class="food-row"><span class="dot d-ok"></span><div><div class="food-name">シャーベット・かき氷（常温の飲み物と一緒に）</div><div class="food-note">乳脂肪がなく低脂質。体が冷えないよう温かい飲み物と一緒に</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">どら焼き・大福・羊羹（1個まで）</div><div class="food-note">脂質は低いが糖質多め。食べすぎ注意</div></div></div>
+    <div class="food-row"><span class="dot d-care"></span><div><div class="food-name">ナッツ類（素焼き・10〜15粒まで）</div><div class="food-note">良質な脂だが脂質が高い。少量にとどめる</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">ケーキ・シュークリーム・クリームパン</div><div class="food-note">生クリーム＋バターで脂質の塊。遺伝子的に最も蓄積しやすい</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">チョコレート・クッキー・スナック菓子</div><div class="food-note">バター・植物油脂が多く脂質が高い</div></div></div>
+    <div class="food-row"><span class="dot d-ng">❌</span><div><div class="food-name">アイスクリーム・ソフトクリーム</div><div class="food-note">乳脂肪が高い。ラクトアイスなら比較的マシ</div></div></div>
+  </div>
+
+  <div class="sec-label">タイミング別おすすめ</div>
+  <div class="card">
+    <div class="row"><div class="row-head"><span class="row-name">筋トレ後（30分以内）</span></div><div class="row-desc">プロテイン or バナナ＋ヨーグルト。たんぱく質補給が最優先。</div></div>
+    <div class="row"><div class="row-head"><span class="row-name">午後の小腹が空いたとき</span></div><div class="row-desc">ゆで卵 or サラダチキン or 無糖ヨーグルト。甘いものが食べたければりんご・和菓子。</div></div>
+    <div class="row"><div class="row-head"><span class="row-name">夜に甘いものが食べたいとき</span></div><div class="row-desc">わらびもち・ところてん・シャーベット。ケーキ・アイスは翌日のランチを和食定食にしてバランスを取る。</div></div>
+  </div>
+</div>
+
+<!-- 筋トレ -->
+<div id="sec-workout" class="section">
+  <div class="sec-label">週スケジュール</div>
+  <div class="week-grid">
+    <div class="dc dc-lower"><div class="dc-l">月</div><div class="dc-t">下半身</div></div>
+    <div class="dc dc-rest"><div class="dc-l">火</div><div class="dc-t">休息</div></div>
+    <div class="dc dc-upper"><div class="dc-l">水</div><div class="dc-t">上半身</div></div>
+    <div class="dc dc-rest"><div class="dc-l">木</div><div class="dc-t">休息</div></div>
+    <div class="dc dc-lower"><div class="dc-l">金</div><div class="dc-t">下半身</div></div>
+    <div class="dc dc-cardio"><div class="dc-l">土</div><div class="dc-t">有酸素</div></div>
+    <div class="dc dc-rest"><div class="dc-l">日</div><div class="dc-t">休息</div></div>
+  </div>
+  <div class="sec-label">下半身（週2回・40分）</div>
+  <div class="card">
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">スクワット</span><span class="badge b-ok">お尻・太もも</span></div><div class="ex-set">15回 × 3セット｜休憩60秒</div><div class="ex-tip">足は肩幅より広め・つま先外向き。お尻を後ろに引くイメージ。膝がつま先より前に出ないように。</div></div>
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">ワイドスクワット</span><span class="badge b-ok">内もも・お尻</span></div><div class="ex-set">12回 × 3セット｜休憩60秒</div><div class="ex-tip">足を肩幅の1.5〜2倍に開きつま先45度外向き。下半身の皮下脂肪に直接アプローチ。</div></div>
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">ランジ</span><span class="badge b-ok">太もも・お尻</span></div><div class="ex-set">左右10回 × 3セット｜休憩60秒</div><div class="ex-tip">片足を大きく前に踏み出し後ろ膝を床ギリギリへ。上体はまっすぐ保つ。</div></div>
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">ヒップリフト</span><span class="badge b-ok">お尻・ハム</span></div><div class="ex-set">20回 × 3セット｜休憩45秒</div><div class="ex-tip">仰向けで膝を立て、お尻をゆっくり上げて2秒キープ。寝ながらできる◎</div></div>
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">カーフレイズ</span><span class="badge b-ok">ふくらはぎ</span></div><div class="ex-set">20回 × 3セット｜休憩30秒</div><div class="ex-tip">つま先立ちをゆっくり繰り返す。むくみ・冷え改善にも効果的。</div></div>
+  </div>
+  <div class="sec-label">上半身・体幹（週1回・30分）</div>
+  <div class="card">
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">膝つき腕立て伏せ</span><span class="badge b-care">胸・腕</span></div><div class="ex-set">10〜15回 × 3セット｜休憩60秒</div><div class="ex-tip">体を一直線に保ちゆっくり下げ・上げ。慣れたら膝なしへ移行。</div></div>
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">ペットボトルショルダープレス</span><span class="badge b-care">肩</span></div><div class="ex-set">12回 × 3セット｜休憩60秒</div><div class="ex-tip">500ml〜2Lを両手に持ち肩の高さから真上へ押し上げる。</div></div>
+    <div class="ex-row"><div class="ex-head"><span class="ex-name">プランク</span><span class="badge b-care">体幹</span></div><div class="ex-set">30秒 × 3セット｜休憩45秒</div><div class="ex-tip">最初は15秒でOK。慣れたら45秒→60秒へ延ばす。</div></div>
+  </div>
+  <div class="sec-label">β2AR体質の鉄則</div>
+  <div class="two-col">
+    <div class="rule-box rule-ok">
+      <div class="rule-t">必ずやること</div>
+      <div class="rule-item">筋トレ後30分以内にたんぱく質</div>
+      <div class="rule-item">週2〜3回の頻度を維持</div>
+      <div class="rule-item">毎回ストレッチで回復</div>
+      <div class="rule-item">筋トレは有酸素より先に</div>
+    </div>
+    <div class="rule-box rule-ng">
+      <div class="rule-t">やりがちなNG</div>
+      <div class="rule-item">毎日やって回復させない</div>
+      <div class="rule-item">有酸素ばかりで筋トレをサボる</div>
+      <div class="rule-item">1〜2回で効果なしと諦める</div>
+      <div class="rule-item">軽すぎる負荷でたくさん回す</div>
+    </div>
+  </div>
+</div>
+
+<!-- やること -->
+<div id="sec-action" class="section">
+  <div class="sec-label">優先アクションリスト</div>
+  <div class="card">
+    <div class="action-row"><div class="num">1</div><div><div class="action-t">揚げ物・クリーム系を週3回以内に</div><div class="action-d">UCP1体質の最重要ポイント。まずここだけ変えると効果が出やすい。</div></div></div>
+    <div class="action-row"><div class="num">2</div><div><div class="action-t">たんぱく質を毎食必ず入れる</div><div class="action-d">鶏むね・魚・卵・豆腐・納豆のどれかを毎食。筋肉を守るために必須。</div></div></div>
+    <div class="action-row"><div class="num">3</div><div><div class="action-t">間食をヨーグルト or プロテインに</div><div class="action-d">空腹でなくても1日1回。たんぱく質補給のために食べる。</div></div></div>
+    <div class="action-row"><div class="num">4</div><div><div class="action-t">ご飯・パン・麺は普通に食べる</div><div class="action-d">糖質制限は逆効果。主食を減らすと筋肉が分解されやすくなる。</div></div></div>
+    <div class="action-row"><div class="num">5</div><div><div class="action-t">体を温める食生活を意識する</div><div class="action-d">お湯割り・根菜・生姜を積極的に。冷たいものの摂りすぎに注意。</div></div></div>
+    <div class="action-row"><div class="num">6</div><div><div class="action-t">下半身筋トレを週2〜3回</div><div class="action-d">スクワット・ランジ・ヒップリフトから始める。有酸素より筋トレ優先。</div></div></div>
+    <div class="action-row"><div class="num">7</div><div><div class="action-t">水分を1日1.5〜2L摂る</div><div class="action-d">体水分率50.8%がやや低め。むくみやすい体質なので意識して水分補給。</div></div></div>
+  </div>
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+  btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
